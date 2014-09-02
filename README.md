@@ -1,4 +1,4 @@
-Spring-XD-Internals-
-====================
+Spring-XD-Internals
+===================
 
-Sample Code for the 'Spring XD Internals: A Guided Tour' Session
+This repository contains sample code for the 'Spring XD Internals: A Guided Tour' Session.

@@ -1,0 +1,76 @@
+buildscript {
+    repositories {
+        maven { url 'http://repo.spring.io/libs-release' }
+        jcenter()
+    }
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.1.4.RELEASE'
+    }
+}
+
+    repositories {
+        maven { url 'http://repo.spring.io/libs-release' }
+        jcenter()
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'spring-boot'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    maven
+
+}
+
+bootRepackage.enabled=false
+//Not in IO
+ext {
+    platformVersion = '1.0.1.RELEASE'
+    springXdVersion='1.0.0.RELEASE'
+    activemqVersion = '5.7.0'
+    xbeanSpringVersion = '3.7'
+    args4jVersion = '2.0.16'
+}
+
+jar {
+    baseName = project.name
+    version = '1.0.0.BUILD-SNAPSHOT'
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+    versionManagement "io.spring.platform:platform-versions:$platformVersion@properties"
+    compile "org.springframework:spring-messaging"
+    compile "org.springframework:spring-jms"
+    compile "org.springframework.integration:spring-integration-jms"
+    compile("org.springframework.xd:spring-xd-dirt:$springXdVersion") {
+       exclude group: "org.slf4j"
+       exclude module: "spring-xd-hadoop"
+    }
+    compile("org.apache.activemq:activemq-all:$activemqVersion") {
+    }
+    compile "org.apache.xbean:xbean-spring:$xbeanSpringVersion"
+
+    testCompile("org.springframework.xd:spring-xd-test:$springXdVersion") {
+        exclude module: "spring-xd-hadoop"
+        exclude group: "org.slf4j"
+    }
+    testCompile "junit:junit"
+//Avoid exception in XDConfigLoggingInitializer
+    testRuntime "org.apache.hadoop:hadoop-common:2.2.0"
+    runtime "log4j:log4j"
+}
+
+task copyToLibs(dependsOn:assemble, type: Copy) {
+    into "$buildDir/libs"
+    from configurations.runtime
+    include 'spring-jms-*'
+    include 'spring-integration-jms-*'
+    include 'activemq-all-*'
+    include 'xbean-spring-*'
+}
+
+build.dependsOn copyToLibs
+

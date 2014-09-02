@@ -1,0 +1,23 @@
+<beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:amq="http://activemq.apache.org/schema/core"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+  http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+    <!--  lets create an embedded ActiveMQ Broker -->
+    <amq:broker useJmx="false" persistent="false">
+        <amq:transportConnectors>
+            <amq:transportConnector uri="tcp://localhost:0" />
+        </amq:transportConnectors>
+        <!-- Required to avoid start up error if insufficient disk space. Default Temporary Store limit is 51200 mb -->
+        <amq:systemUsage>
+            <amq:systemUsage>
+                <amq:tempUsage><amq:tempUsage limit="32mb"/></amq:tempUsage>
+            </amq:systemUsage>
+        </amq:systemUsage>
+    </amq:broker>
+
+    <!-- JMS ConnectionFactory to use, configuring the embedded broker using XML -->
+    <amq:connectionFactory id="jmsConnectionFactory" brokerURL="vm://localhost"/>
+ </beans>
