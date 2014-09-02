@@ -1,11 +1,11 @@
 *#
 .#*
 *~
-/.gradle/
-build
+.gradle/
+build/
 pom.xml
-/.idea/
-/out/
+.idea/
+out/
 target/
 *.ipr
 *.iml
