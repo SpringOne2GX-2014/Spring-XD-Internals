@@ -1,0 +1,107 @@
+description = 'Spring XD Template Module' // TODO: Change this to match your module
+
+
+buildscript {
+    repositories {
+        maven { url 'https://repo.spring.io/plugins-release' }
+    }
+    dependencies {
+        classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
+    }
+}
+
+group = 'org.springframework.xd'
+
+ext {
+    moduleType = 'source'
+    moduleName = 'template' // TODO: change this to match the name of your module
+
+    // Your module version
+    version='1.0.0.BUILD-SNAPSHOT'
+    // The version of Spring XD you're building against
+    springXDVersion='1.0.0.RELEASE'
+}
+
+
+repositories {
+  maven { url "https://repo.spring.io/libs-snapshot" }
+  maven { url "https://repo.spring.io/plugins-release" }
+  mavenCentral()
+}
+
+apply plugin: "java"
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'javadocHotfix'
+
+[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
+[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial", "-Xlint:deprecation"]
+
+configurations {
+    dirt {}
+    compile.extendsFrom(dirt)
+}
+
+dependencies {
+
+    dirt "org.springframework.xd:spring-xd-dirt:$springXDVersion"
+
+    // TODO: Add/remove dependencies as you see fit to the compile, runtime, and testCompile configurations
+    // The compile scope already inherits from all libraries available in Spring XD
+    // At packaging time, only libraries that are *not* in XD will end up in your module lib/ folder
+
+    compile 'org.apache.commons:commons-math:2.2' // An example lib that is NOT yet in Spring XD
+
+
+}
+
+jar {
+    manifest.attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
+    manifest.attributes['Implementation-Title'] = project.name
+    manifest.attributes['Implementation-Version'] = project.version
+}
+
+task xdModule(type: Copy, dependsOn: jar) {
+    group = 'Build'
+    description = "Builds the project as a Spring XD ${moduleType} module with the correct set of dependencies"
+    def moduleRuntime = configurations.runtime.minus(configurations.dirt)
+    def moduleDir = project.file("${buildDir}/modules/${moduleType}/${moduleName}")
+    inputs.property('deps', moduleRuntime)
+    outputs.dir "${moduleDir}/lib"
+
+    into moduleDir
+
+    from(moduleRuntime) {
+        into "lib"
+    }
+    from(jar) {
+        into "lib"
+    }
+    from ("modules/${moduleType}/${moduleName}/config") {
+        into "config"
+    }
+}
+build.dependsOn = ['xdModule']
+
+task xdModuleZip(type: Zip, dependsOn: xdModule) {
+    group = 'Distribution'
+    classifier = 'xdmodule'
+    description = "Builds -${classifier} archive, containing an XD module"
+
+    into("${moduleType}/${moduleName}") {
+        from(xdModule.destinationDir)
+    }
+
+}
+
+artifacts {
+    archives xdModuleZip
+}
+
+task wrapper(type: Wrapper) {
+    description = 'Generates gradlew[.bat] scripts'
+    gradleVersion = '1.11'
+}
+
+defaultTasks 'build'
+
